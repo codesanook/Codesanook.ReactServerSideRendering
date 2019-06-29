@@ -1,0 +1,16 @@
+﻿<h3>Counter component</h3>
+
+@Html.React("Components.Counter",
+    new { defaultCounterValue = 99 }
+)
+
+<h3>Profile component</h3>
+@Html.React("Components.Profile", new
+{
+    user = new
+    {
+        firstName = "Real",
+        lastName = "Man"
+    }
+})
+
