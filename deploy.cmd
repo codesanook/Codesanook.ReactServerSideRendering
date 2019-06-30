@@ -11,7 +11,7 @@ ECHO running
 :: Verify node.js installed
 
 ECHO "Verifying Node.js"
-WHERE node 2>nul >nul
+WHERE node >null 2>&1
 
 IF %ERRORLEVEL% NEQ 0 (
   ECHO Missing node.js executable, please install node.js, if already installed make sure it can be reached from current environment.
@@ -73,6 +73,24 @@ SET MSBUILD_PATH=%ProgramFiles(x86)%\MSBuild-15.3.409.57025\MSBuild\15.0\Bin\MSB
 
 CALL :ExecuteCmd "%MSBUILD_PATH%" -version
 
+ECHO "-----------------Variables---------------------------------"
+ECHO "ARTIFACTS = %ARTIFACTS%"
+ECHO "DEPLOYMENT_SOURCE = %DEPLOYMENT_SOURCE%"
+ECHO "DEPLOYMENT_TARGET = %DEPLOYMENT_TARGET%"
+ECHO "NEXT_MANIFEST_PATH = %NEXT_MANIFEST_PATH%"
+ECHO "PREVIOUS_MANIFEST_PATH = %PREVIOUS_MANIFEST_PATH%"
+ECHO "KUDU_SYNC_CMD = %appdata%\npm\kuduSync.cmd"
+ECHO "DEPLOYMENT_TEMP = %DEPLOYMENT_TEMP%"
+ECHO "CLEAN_LOCAL_DEPLOYMENT_TEMP = %CLEAN_LOCAL_DEPLOYMENT_TEMP%"
+ECHO "MSBUILD_PATH = %MSBUILD_PATH%"
+ECHO "KUDU_SELECT_NODE_VERSION_CMD = %KUDU_SELECT_NODE_VERSION_CMD%"
+
+:: Write new empty line
+:: https://ss64.com/nt/echo.html
+ECHO:
+ECHO:
+ECHO "-----------------Variables END ---------------------------------"
+
 GOTO Deployment
 
 :: Utility Functions
@@ -83,32 +101,15 @@ IF DEFINED KUDU_SELECT_NODE_VERSION_CMD (
     :: The following are done only on Windows Azure Websites environment
     CALL %KUDU_SELECT_NODE_VERSION_CMD% "%DEPLOYMENT_SOURCE%" "%DEPLOYMENT_TARGET%" "%DEPLOYMENT_TEMP%"
     IF !ERRORLEVEL! NEQ 0 GOTO error
+) 
 
-    IF EXIST "%DEPLOYMENT_TEMP%\__nodeVersion.tmp" (
-		:: Set NODE_EXE from the first line in a file
-        SET /p NODE_EXE=<"%DEPLOYMENT_TEMP%\__nodeVersion.tmp"
-        IF !ERRORLEVEL! NEQ 0 GOTO error
-    )
-    
-    IF EXIST "%DEPLOYMENT_TEMP%\__npmVersion.tmp" (
-        SET /p NPM_JS_PATH=<"%DEPLOYMENT_TEMP%\__npmVersion.tmp"
-        IF !ERRORLEVEL! NEQ 0 GOTO error
-    )
+SET NODE_EXE=node
+SET NPM_CMD=npm
 
-    IF NOT DEFINED NODE_EXE (
-		SET NODE_EXE=node
-    )
-
-	:: Set NPM_CMD
-    SET NPM_CMD="!NODE_EXE!" "!NPM_JS_PATH!"
-
-) ELSE (
-    SET NPM_CMD=npm
-    SET NODE_EXE=node
-)
-
-ECHO Finished setting NODE and NPM
+ECHO NODE_EXE = '!NODE_EXE!'
+ECHO NPM_CMD = '!NPM_CMD!'
 GOTO :EOF
+
 
 :Deployment
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -126,16 +127,49 @@ IF !ERRORLEVEL! NEQ 0 GOTO error
 
 :: Build to the temporary path
 IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
-	ECHO "Building with MSBUILD" 
+	ECHO "Building with MSBUILD to '%DEPLOYMENT_TEMP%'" 
 	CALL :ExecuteCmd "%MSBUILD_PATH%" %PROJECT_PATH% /nologo /verbosity:m /t:Build /t:pipelinePreDeployCopyAllFilesToOneFolder /p:_PackageTempDir="%DEPLOYMENT_TEMP%";AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release;UseSharedCompilation=false /p:SolutionDir="%DEPLOYMENT_SOURCE%\.\\" %SCM_BUILD_ARGS%
 ) ELSE (
 	CALL :ExecuteCmd "%MSBUILD_PATH%" %PROJECT_PATH% /nologo /verbosity:m /t:Build /p:AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release;UseSharedCompilation=false /p:SolutionDir="%DEPLOYMENT_SOURCE%\.\\" %SCM_BUILD_ARGS%
 )
-
 IF !ERRORLEVEL! NEQ 0 GOTO error
 
+TREE /F /A "%DEPLOYMENT_TEMP%"
 
+:: Select node version from DEPLOYMENT_TEMP folder
+CALL :SelectNodeVersion 
 
+ECHO "Current NODE and NPM version"
+CALL :ExecuteCmd !NODE_EXE! --version
+CALL :ExecuteCmd !NPM_CMD! --version
+IF !ERRORLEVEL! NEQ 0 GOTO error
+
+IF EXIST "%DEPLOYMENT_TEMP%\package.json" (
+
+    ECHO Current working directory '%~dp0%'
+    ECHO Found '%DEPLOYMENT_TEMP%\package.json'
+    PUSHD "%DEPLOYMENT_TEMP%"
+
+    ECHO Installing Node.js packages
+    CALL :ExecuteCmd !NPM_CMD! install
+    IF !ERRORLEVEL! NEQ 0 GOTO error
+
+    POPD
+)
+
+IF EXIST "%DEPLOYMENT_TEMP%\package.json" (
+    PUSHD "%DEPLOYMENT_TEMP%"
+    CALL :ExecuteCmd !NPM_CMD! run dev
+    IF !ERRORLEVEL! NEQ 0 GOTO error
+    POPD
+)
+
+:: KuduSync
+ECHO Kudu syncing 
+IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
+  CALL :ExecuteCmd "%KUDU_SYNC_CMD%" -v 50 -f "%DEPLOYMENT_TEMP%" -t "%DEPLOYMENT_TARGET%" -n "%NEXT_MANIFEST_PATH%" -p "%PREVIOUS_MANIFEST_PATH%" -i ".git;.hg;.deployment;deploy.cmd;node_modules"
+  IF !ERRORLEVEL! NEQ 0 GOTO error
+)
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 GOTO end
