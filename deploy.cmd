@@ -1,16 +1,7 @@
-ECHO running
+:: KUDU Deployment Script 
 @IF "%SCM_TRACE_LEVEL%" NEQ "4" @ECHO off
-:: ----------------------
-:: KUDU Deployment Script
-:: Version: 1.0.17
-:: ----------------------
-
-:: Prerequisites
-:: -------------
 
 :: Verify node.js installed
-
-ECHO "Verifying Node.js"
 WHERE node >null 2>&1
 
 IF %ERRORLEVEL% NEQ 0 (
@@ -18,11 +9,8 @@ IF %ERRORLEVEL% NEQ 0 (
   GOTO error
 )
 
-ECHO "done Verifying Node.js"
-
 :: Setup
 :: -----
-
 SETLOCAL ENABLEDELAYEDEXPANSION
 
 ::https://stackoverflow.com/a/10290765/1872200
@@ -32,47 +20,47 @@ SET ARTIFACTS=%~dp0%..\artifacts
 
 :: Set deployment source folder
 IF NOT DEFINED DEPLOYMENT_SOURCE (
-  SET DEPLOYMENT_SOURCE=%~dp0%.
+	SET DEPLOYMENT_SOURCE=%~dp0%.
 )
 
 :: Set deployment source folder
 IF NOT DEFINED DEPLOYMENT_TARGET (
-  SET DEPLOYMENT_TARGET=%ARTIFACTS%\wwwroot
+	SET DEPLOYMENT_TARGET=%ARTIFACTS%\wwwroot
 )
 
 IF NOT DEFINED NEXT_MANIFEST_PATH (
-  SET NEXT_MANIFEST_PATH=%ARTIFACTS%\manifest
+	SET NEXT_MANIFEST_PATH=%ARTIFACTS%\manifest
 
-  IF NOT DEFINED PREVIOUS_MANIFEST_PATH (
-    SET PREVIOUS_MANIFEST_PATH=%ARTIFACTS%\manifest
-  )
+	IF NOT DEFINED PREVIOUS_MANIFEST_PATH (
+		SET PREVIOUS_MANIFEST_PATH=%ARTIFACTS%\manifest
+	)
 )
 
 IF NOT DEFINED KUDU_SYNC_CMD (
-  :: Install Kudu sync
-  ECHO Installing Kudu Sync
-  CALL npm install kudusync -g --silent
-  IF !ERRORLEVEL! NEQ 0 GOTO error
+	:: Install Kudu sync
+	ECHO Installing Kudu Sync
+	CALL npm install kudusync -g --silent
+	IF !ERRORLEVEL! NEQ 0 GOTO error
 
-  :: Locally just running "kuduSync" would also work
-  SET KUDU_SYNC_CMD=%appdata%\npm\kuduSync.cmd
+	:: Locally just running "kuduSync" would also work
+	SET KUDU_SYNC_CMD=%appdata%\npm\kuduSync.cmd
 )
 
 IF NOT DEFINED DEPLOYMENT_TEMP (
-  SET DEPLOYMENT_TEMP=%temp%\___deployTemp%random%
-  SET CLEAN_LOCAL_DEPLOYMENT_TEMP=true
+	SET DEPLOYMENT_TEMP=%temp%\___deployTemp%random%
+	SET CLEAN_LOCAL_DEPLOYMENT_TEMP=true
 )
 
 IF DEFINED CLEAN_LOCAL_DEPLOYMENT_TEMP (
-  IF EXIST "%DEPLOYMENT_TEMP%" RD /s /q "%DEPLOYMENT_TEMP%"
-  MKDIR "%DEPLOYMENT_TEMP%"
+	IF EXIST "%DEPLOYMENT_TEMP%" RD /s /q "%DEPLOYMENT_TEMP%"
+	MKDIR "%DEPLOYMENT_TEMP%"
 )
 
 :: Always set MSBUILD_PATH
 SET MSBUILD_PATH=%ProgramFiles(x86)%\MSBuild-15.3.409.57025\MSBuild\15.0\Bin\MSBuild.exe
-
 CALL :ExecuteCmd "%MSBUILD_PATH%" -version
 
+ECHO:
 ECHO "-----------------Variables---------------------------------"
 ECHO "ARTIFACTS = %ARTIFACTS%"
 ECHO "DEPLOYMENT_SOURCE = %DEPLOYMENT_SOURCE%"
@@ -88,15 +76,13 @@ ECHO "KUDU_SELECT_NODE_VERSION_CMD = %KUDU_SELECT_NODE_VERSION_CMD%"
 :: Write new empty line
 :: https://ss64.com/nt/echo.html
 ECHO:
-ECHO:
 ECHO "-----------------Variables END ---------------------------------"
 
 GOTO Deployment
 
 :: Utility Functions
-:: -----------------
+:: Define default node version in WEBSITE_NODE_DEFAULT_VERSION app setting
 :SelectNodeVersion
-
 IF DEFINED KUDU_SELECT_NODE_VERSION_CMD (
     :: The following are done only on Windows Azure Websites environment
     CALL %KUDU_SELECT_NODE_VERSION_CMD% "%DEPLOYMENT_SOURCE%" "%DEPLOYMENT_TARGET%" "%DEPLOYMENT_TEMP%"
@@ -105,11 +91,7 @@ IF DEFINED KUDU_SELECT_NODE_VERSION_CMD (
 
 SET NODE_EXE=node
 SET NPM_CMD=npm
-
-ECHO NODE_EXE = '!NODE_EXE!'
-ECHO NPM_CMD = '!NPM_CMD!'
 GOTO :EOF
-
 
 :Deployment
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -123,7 +105,6 @@ SET PROJECT_PATH="%DEPLOYMENT_SOURCE%\Codesanook.ReactJS.ServerSideRendering\Cod
 :: Restore NuGet packages
 CALL :ExecuteCmd nuget restore %SOLUTION_PATH%
 IF !ERRORLEVEL! NEQ 0 GOTO error
-
 
 :: Build to the temporary path
 IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
@@ -167,8 +148,8 @@ IF EXIST "%DEPLOYMENT_TEMP%\package.json" (
 :: KuduSync
 ECHO Kudu syncing 
 IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
-  CALL :ExecuteCmd "%KUDU_SYNC_CMD%" -v 50 -f "%DEPLOYMENT_TEMP%" -t "%DEPLOYMENT_TARGET%" -n "%NEXT_MANIFEST_PATH%" -p "%PREVIOUS_MANIFEST_PATH%" -i ".git;.hg;.deployment;deploy.cmd;node_modules"
-  IF !ERRORLEVEL! NEQ 0 GOTO error
+	CALL :ExecuteCmd "%KUDU_SYNC_CMD%" -v 50 -f "%DEPLOYMENT_TEMP%" -t "%DEPLOYMENT_TARGET%" -n "%NEXT_MANIFEST_PATH%" -p "%PREVIOUS_MANIFEST_PATH%" -i ".git;.hg;.deployment;deploy.cmd;node_modules"
+	IF !ERRORLEVEL! NEQ 0 GOTO error
 )
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
