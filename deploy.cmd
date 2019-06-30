@@ -11,7 +11,8 @@ ECHO running
 :: Verify node.js installed
 
 ECHO "Verifying Node.js"
-where node 2>nul >nul
+WHERE node 2>nul >nul
+
 IF %ERRORLEVEL% NEQ 0 (
   ECHO Missing node.js executable, please install node.js, if already installed make sure it can be reached from current environment.
   GOTO error
@@ -95,7 +96,7 @@ IF DEFINED KUDU_SELECT_NODE_VERSION_CMD (
     )
 
     IF NOT DEFINED NODE_EXE (
-        SET NODE_EXE=node
+		SET NODE_EXE=node
     )
 
 	:: Set NPM_CMD
@@ -115,9 +116,24 @@ GOTO :EOF
 :: ----------
 ECHO Handling .NET Web Application deployment.
 
-:: 1. Restore NuGet packages
-CALL :ExecuteCmd nuget restore "%DEPLOYMENT_SOURCE%\Codesanook.ReactJS.sln"
+SET SOLUTION_PATH="%DEPLOYMENT_SOURCE%\Codesanook.ReactJS.sln"
+SET PROJECT_PATH="%DEPLOYMENT_SOURCE%\Codesanook.ReactJS.ServerSideRendering\Codesanook.ReactJS.ServerSideRendering.csproj"
+
+:: Restore NuGet packages
+CALL :ExecuteCmd nuget restore %SOLUTION_PATH%
 IF !ERRORLEVEL! NEQ 0 GOTO error
+
+
+:: Build to the temporary path
+IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
+	ECHO "Building with MSBUILD" 
+	CALL :ExecuteCmd "%MSBUILD_PATH%" %PROJECT_PATH% /nologo /verbosity:m /t:Build /t:pipelinePreDeployCopyAllFilesToOneFolder /p:_PackageTempDir="%DEPLOYMENT_TEMP%";AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release;UseSharedCompilation=false /p:SolutionDir="%DEPLOYMENT_SOURCE%\.\\" %SCM_BUILD_ARGS%
+) ELSE (
+	CALL :ExecuteCmd "%MSBUILD_PATH%" %PROJECT_PATH% /nologo /verbosity:m /t:Build /p:AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release;UseSharedCompilation=false /p:SolutionDir="%DEPLOYMENT_SOURCE%\.\\" %SCM_BUILD_ARGS%
+)
+
+IF !ERRORLEVEL! NEQ 0 GOTO error
+
 
 
 
