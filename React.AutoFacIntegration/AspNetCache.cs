@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Caching;
 
-namespace Codesanook.ReactJS.ServerSideRendering.Helpers
+namespace React.AutofacIntegration
 {
 	/// <summary>
 	/// Implementation of <see cref="ICache"/> using ASP.NET cache.

@@ -1,7 +1,6 @@
-﻿using React;
-using System.Web.Hosting;
+﻿using System.Web.Hosting;
 
-namespace Codesanook.ReactJS.ServerSideRendering.Helpers
+namespace React.AutofacIntegration
 {
 	/// <summary>
 	/// Handles file system functionality, such as reading files. Maps all paths from 
