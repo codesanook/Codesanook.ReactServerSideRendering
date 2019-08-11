@@ -11,7 +11,6 @@ namespace Codesanook.ReactJS.ServerSideRendering
         protected void Application_Start()
         {
             AutofacConfig.RegisterAutofac();
-
             ReactSiteConfiguration.Configuration
                 .SetLoadBabel(false)
                 .AddScriptWithoutTransform("~/scripts/server.bundle.js");
