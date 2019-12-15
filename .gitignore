@@ -281,13 +281,17 @@ README.html
 log4j2.xml
 application-local.properties
 node_modules
-#ignore sass cache
+
+# ignore sass cache
 .sass-cache
 .sass-cache/*
 out
 
-#TypeScript output directory 
+# TypeScript output directory 
 dist
 
-#output of JScript.NET example
+# output of JScript.NET example
 program.exe
+
+# Ignore generated JavaScript files 
+**/src/**/*.js

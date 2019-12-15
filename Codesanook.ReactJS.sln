@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.645
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29519.161
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codesanook.ReactJS.ServerSideRendering", "Codesanook.ReactJS.ServerSideRendering\Codesanook.ReactJS.ServerSideRendering.csproj", "{FA05C094-627A-4057-AA2E-5A72743B0CC7}"
 EndProject
@@ -9,7 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.deployment = .deployment
 		deploy.cmd = deploy.cmd
-		React.AutofacIntegration\React.AutofacIntegration.csproj = React.AutofacIntegration\React.AutofacIntegration.csproj
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "React.AutofacIntegration", "React.AutofacIntegration\React.AutofacIntegration.csproj", "{E5DDBFA6-1C41-4131-AF82-912C41D5E019}"

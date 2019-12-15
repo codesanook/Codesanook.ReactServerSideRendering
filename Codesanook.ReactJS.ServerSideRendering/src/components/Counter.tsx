@@ -1,6 +1,6 @@
 ﻿import * as React from 'react';
 
-const Counter = (props:any) => {
+const Counter = (props: any) => {
 
     const [counter, setCounter] = React.useState(props.defaultCounterValue);
     const handleButtonClick = () => {
@@ -9,7 +9,7 @@ const Counter = (props:any) => {
 
     return (
         <div>
-            <h1>Current counter {counter}</h1>
+            <h1>{counter}</h1>
             <p>
                 Click button to increase counter
             </p>

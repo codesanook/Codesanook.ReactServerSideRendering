@@ -13,9 +13,7 @@ namespace React.AutofacIntegration
 		/// </summary>
 		/// <param name="relativePath">App-relative path of the file</param>
 		/// <returns>Full path of the file</returns>
-		public override string MapPath(string relativePath)
-		{
-			return HostingEnvironment.MapPath(relativePath);
-		}
+		public override string MapPath(string relativePath) => 
+			HostingEnvironment.MapPath(relativePath);
 	}
 }

@@ -20,10 +20,7 @@ namespace React.AutofacIntegration
 		/// Initializes a new instance of the <see cref="AspNetCache"/> class.
 		/// </summary>
 		/// <param name="cache">The Web application cache</param>
-		public AspNetCache(Cache cache)
-		{
-			_cache = cache;
-		}
+		public AspNetCache(Cache cache) => _cache = cache;
 
 		/// <summary>
 		/// Get an item from the cache. Returns <paramref name="fallback"/> if the item does
@@ -33,10 +30,8 @@ namespace React.AutofacIntegration
 		/// <param name="key">The cache key</param>
 		/// <param name="fallback">Value to return if item is not in the cache</param>
 		/// <returns>Data from cache, otherwise <paramref name="fallback"/></returns>
-		public T Get<T>(string key, T fallback = default(T))
-		{
-			return (T)(_cache[key] ?? fallback);
-		}
+		public T Get<T>(string key, T fallback = default(T)) => 
+			(T)(_cache[key] ?? fallback);
 
 		/// <summary>
 		/// Sets an item in the cache.
