@@ -114,6 +114,6 @@
     <Error Condition="!Exists('..\packages\JavaScriptEngineSwitcher.V8.Native.win-x86.3.1.5\build\JavaScriptEngineSwitcher.V8.Native.win-x86.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\JavaScriptEngineSwitcher.V8.Native.win-x86.3.1.5\build\JavaScriptEngineSwitcher.V8.Native.win-x86.props'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>PowerShell.EXE -File  $(ProjectDir)Copy-V8.ps1 -SolutionDir $(SolutionDir) -TargetDir $(TargetDir)</PostBuildEvent>
+    <PostBuildEvent>PowerShell -ExecutionPolicy ByPass -File  $(ProjectDir)Copy-V8.ps1 -SolutionDir $(SolutionDir) -TargetDir $(TargetDir)</PostBuildEvent>
   </PropertyGroup>
 </Project>

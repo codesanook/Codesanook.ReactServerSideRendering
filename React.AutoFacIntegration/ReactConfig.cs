@@ -42,6 +42,17 @@ namespace React.AutoFacIntegration
             builder.RegisterType<FileCacheHash>().As<IFileCacheHash>().InstancePerDependency();
 
             builder.RegisterType<ReactEnvironment>().As<IReactEnvironment>().InstancePerRequest();
+
+            /*
+            public ReactEnvironment(
+                IJavaScriptEngineFactory engineFactory,
+                IReactSiteConfiguration config,
+                ICache cache,
+                IFileSystem fileSystem,
+                IFileCacheHash fileCacheHash,
+                IReactIdGenerator reactIdGenerator
+                );
+            */
             RedirectAssembly("JavaScriptEngineSwitcher.Core", new Version("3.1.0.0"), "c608b2a8cc9e4472");
         }
 

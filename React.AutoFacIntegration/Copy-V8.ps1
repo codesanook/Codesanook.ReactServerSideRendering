@@ -10,4 +10,7 @@ $destination = Join-Path -Path $SolutionDir -ChildPath "Codesanook.ReactJS.Serve
 New-Item -ItemType Directory $destination -Force -ErrorAction SilentlyContinue | Out-Null
 
 $files = Get-ChildItem -Path $TargetDir -Recurse | Where-Object { $_.FullName -Match 'x86.*v8' } 
-$files | Copy-Item -Destination $destination -Force -Verbose
+$files | ForEach-Object{
+	"Copying $_.FullName to $destination"
+	Copy-Item -Path $_.FullName -Destination $destination -Force -Verbose
+}

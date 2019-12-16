@@ -10,6 +10,10 @@
         "name": "Codesanook team"
     },
     "license": "MIT",
+    "engines": {
+        "node": "=10.17.0",
+        "npm": "=6.8.0"
+    },
     "devDependencies": {
         "@babel/core": "7.4.4",
         "@babel/plugin-proposal-class-properties": "7.4.4",
