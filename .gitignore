@@ -295,3 +295,4 @@ program.exe
 
 # Ignore generated JavaScript files 
 **/src/**/*.js
+**/scripts/**/*.js
