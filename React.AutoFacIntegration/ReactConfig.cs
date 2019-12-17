@@ -13,35 +13,46 @@ namespace React.AutoFacIntegration
     {
         public static void RegisterReact(this ContainerBuilder builder)
         {
-            //public ReactEnvironment(
-            //    IJavaScriptEngineFactory engineFactory,
-            //    IReactSiteConfiguration config,
-            //    ICache cache,
-            //    IFileSystem fileSystem,
-            //    IFileCacheHash fileCacheHash,
-            //    IReactIdGenerator reactIdGenerator
-            //);
-
-            // public JavaScriptEngineFactory(
-            //IJsEngineSwitcher jsEngineSwitcher,
-            //     IReactSiteConfiguration config,
-            //     ICache cache,
-            //     IFileSystem fileSystem
-            //);
-
             JsEngineSwitcher.Current.DefaultEngineName = V8JsEngine.EngineName;
             JsEngineSwitcher.Current.EngineFactories.AddV8();
 
-            builder.RegisterType<JavaScriptEngineFactory>().As<IJavaScriptEngineFactory>().SingleInstance();
-            builder.RegisterInstance(ReactSiteConfiguration.Configuration).As<IReactSiteConfiguration>().SingleInstance();
-            builder.RegisterType<ReactIdGenerator>().As<IReactIdGenerator>().SingleInstance();
-            builder.RegisterInstance(JsEngineSwitcher.Current).As<IJsEngineSwitcher>().SingleInstance();
+            // From React.NET\src\React.Core\AssemblyRegistration.cs
+            /*
+			container.Register<IReactSiteConfiguration>((c, o) => ReactSiteConfiguration.Configuration);
+			container.Register<IFileCacheHash, FileCacheHash>().AsPerRequestSingleton();
+			container.Register<IJsEngineSwitcher>((c, o) => JsEngineSwitcher.Current);
 
-            builder.Register(c => new AspNetCache(HttpRuntime.Cache)).As<ICache>().InstancePerDependency();
-            builder.RegisterType<AspNetFileSystem>().As<IFileSystem>().InstancePerDependency();
+			container.Register<IJavaScriptEngineFactory, JavaScriptEngineFactory>().AsSingleton();
+			container.Register<IReactIdGenerator, ReactIdGenerator>().AsSingleton();
+			container.Register<IReactEnvironment, ReactEnvironment>().AsPerRequestSingleton();
+           */ 
+
+            builder.RegisterInstance(ReactSiteConfiguration.Configuration).As<IReactSiteConfiguration>().SingleInstance();
             builder.RegisterType<FileCacheHash>().As<IFileCacheHash>().InstancePerDependency();
 
+            builder.RegisterInstance(JsEngineSwitcher.Current).As<IJsEngineSwitcher>().SingleInstance();
+
+            /*
+            JavaScriptEngineFactory(
+                IJsEngineSwitcher jsEngineSwitcher,
+                IReactSiteConfiguration config,
+                ICache cache,
+                IFileSystem fileSystem
+            )
+            */
+            builder.RegisterType<JavaScriptEngineFactory>().As<IJavaScriptEngineFactory>().SingleInstance();
+            builder.RegisterType<ReactIdGenerator>().As<IReactIdGenerator>().SingleInstance();
             builder.RegisterType<ReactEnvironment>().As<IReactEnvironment>().InstancePerRequest();
+
+            // ICache used by JavaScriptEngineFactory and ReactEnvironment
+            // React.NET\src\React.Web\AssemblyRegistration.cs
+            // container.Register<ICache, AspNetCache>().AsPerRequestSingleton();
+            builder.Register(c => new AspNetCache(HttpRuntime.Cache)).As<ICache>().InstancePerDependency();
+
+            // IFileSystem used by JavaScriptEngineFactory and ReactEnvironment
+            // React.NET\src\React.Web\AssemblyRegistration.cs
+            // container.Register<IFileSystem, AspNetFileSystem>().AsPerRequestSingleton();
+            builder.RegisterType<AspNetFileSystem>().As<IFileSystem>().InstancePerDependency();
 
             /*
             public ReactEnvironment(
@@ -53,7 +64,11 @@ namespace React.AutoFacIntegration
                 IReactIdGenerator reactIdGenerator
                 );
             */
-            RedirectAssembly("JavaScriptEngineSwitcher.Core", new Version("3.1.0.0"), "c608b2a8cc9e4472");
+            RedirectAssembly(
+                "JavaScriptEngineSwitcher.Core",
+                new Version("3.1.0.0"),
+                "c608b2a8cc9e4472"
+            );
         }
 
         private static void RedirectAssembly(string shortName, Version targetVersion, string publicKeyToken)
