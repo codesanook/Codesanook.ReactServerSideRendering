@@ -13,7 +13,7 @@ IF %ERRORLEVEL% NEQ 0 (
 :: -----
 SETLOCAL ENABLEDELAYEDEXPANSION
 
-::https://stackoverflow.com/a/10290765/1872200
+:: https://stackoverflow.com/a/10290765/1872200
 :: %~dp0% refer to the current executed batch path
 :: Set artifacts folder
 SET ARTIFACTS=%~dp0%..\artifacts
@@ -81,7 +81,9 @@ ECHO "-----------------Variables END ---------------------------------"
 GOTO Deployment
 
 :: Utility Functions
-:: Define default node version in WEBSITE_NODE_DEFAULT_VERSION app setting
+:: Define default node version in WEBSITE_NODE_DEFAULT_VERSION App Setting
+:: Find all Node versions is from api/diagnostics/runtime
+:: https://codesanook-reactjs-server-side-rendering.scm.azurewebsites.net/api/diagnostics/runtime
 :SelectNodeVersion
 IF DEFINED KUDU_SELECT_NODE_VERSION_CMD (
     :: The following are done only on Windows Azure Websites environment
@@ -125,6 +127,10 @@ CALL :ExecuteCmd !NODE_EXE! --version
 CALL :ExecuteCmd !NPM_CMD! --version
 IF !ERRORLEVEL! NEQ 0 GOTO error
 
+ECHO "Install yarn"
+CALL :ExecuteCmd !NPM_CMD! install -g yarn
+
+:: Install node packages
 IF EXIST "%DEPLOYMENT_TEMP%\package.json" (
 
     ECHO Current working directory '%~dp0%'
@@ -132,15 +138,16 @@ IF EXIST "%DEPLOYMENT_TEMP%\package.json" (
     PUSHD "%DEPLOYMENT_TEMP%"
 
     ECHO Installing Node.js packages
-    CALL :ExecuteCmd !NPM_CMD! install
+    CALL :ExecuteCmd yarn install
     IF !ERRORLEVEL! NEQ 0 GOTO error
 
     POPD
 )
 
+:: Build node packages
 IF EXIST "%DEPLOYMENT_TEMP%\package.json" (
     PUSHD "%DEPLOYMENT_TEMP%"
-    CALL :ExecuteCmd !NPM_CMD! run dev
+    CALL :ExecuteCmd yarn run dev
     IF !ERRORLEVEL! NEQ 0 GOTO error
     POPD
 )

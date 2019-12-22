@@ -29,7 +29,6 @@ namespace React.AutoFacIntegration
 
             builder.RegisterInstance(ReactSiteConfiguration.Configuration).As<IReactSiteConfiguration>().SingleInstance();
             builder.RegisterType<FileCacheHash>().As<IFileCacheHash>().InstancePerDependency();
-
             builder.RegisterInstance(JsEngineSwitcher.Current).As<IJsEngineSwitcher>().SingleInstance();
 
             /*
