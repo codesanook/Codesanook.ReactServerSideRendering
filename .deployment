@@ -1,2 +1,2 @@
 [config]
-command = deploy.cmd
+command = PowerShell -NoProfile -NoLogo -ExecutionPolicy Unrestricted -Command "& "$(Join-Path -Path $(Get-Location) -ChildPath deploy.ps1)" 2>&1 | Write-Output"
