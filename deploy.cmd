@@ -22,7 +22,7 @@ IF NOT DEFINED DEPLOYMENT_SOURCE (
 	SET DEPLOYMENT_SOURCE=%~dp0%.
 )
 
-:: Set deployment source folder
+:: Set deployment target folder
 IF NOT DEFINED DEPLOYMENT_TARGET (
 	SET DEPLOYMENT_TARGET=%ARTIFACTS%\wwwroot
 )
