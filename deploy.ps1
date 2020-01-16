@@ -1,6 +1,9 @@
 # https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/set-strictmode?view=powershell-7
 Set-StrictMode -Version Latest
 
+"CUSTOM_VARIABLE $env:CUSTOM_VARIABLE"
+"SCM_REPOSITORY_PATH $env:SCM_REPOSITORY_PATH"
+
 # https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_preference_variables?view=powershell-7erroractionpreference
 $ErrorActionPreference = "Stop"
 

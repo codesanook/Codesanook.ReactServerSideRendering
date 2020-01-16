@@ -1,2 +1,14 @@
+; .deployment is INI file parse with Kudu.Core/Infrastructure/IniFile.cs
+
+; Configurable settings https://github.com/projectkudu/kudu/wiki/Configurable-settings
+; Runtime settings cannot be overrided in .deployment e.g. WEBSITE_NODE_DEFAULT_VERSION
+; More info https://github.com/projectkudu/kudu/wiki/Configurable-settings#runtime-settings
+
 [config]
-command = PowerShell -NoProfile -NoLogo -ExecutionPolicy Unrestricted -Command "& "$(Join-Path -Path $(Get-Location) -ChildPath deploy.ps1)" 2>&1 | Write-Output"
+COMMAND = PowerShell -NoProfile -NoLogo -ExecutionPolicy Unrestricted -Command "& "$(Join-Path -Path $(Get-Location) -ChildPath deploy.ps1)" 2>&1 | Write-Output"
+SCM_REPOSITORY_PATH = D:\local\repository
+CUSTOM_VARIABLE = my custom variable value
+
+; https://github.com/projectkudu/kudu/wiki/Configurable-settings#changing-the-timeout-before-external-commands-are-killed
+; Time in seconds
+SCM_COMMAND_IDLE_TIMEOUT = 300
