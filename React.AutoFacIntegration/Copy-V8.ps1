@@ -1,6 +1,6 @@
 ﻿param(
-    [Parameter(Mandatory = $true)] [string] $SolutionDir,
-    [Parameter(Mandatory = $true)] [string] $TargetDir
+	[Parameter(Mandatory = $true)] [string] $SolutionDir,
+	[Parameter(Mandatory = $true)] [string] $TargetDir
 )
 
 # https://github.com/projectkudu/kudu/issues/2048

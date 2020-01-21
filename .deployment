@@ -1,5 +1,8 @@
 ; .deployment is INI file parse with Kudu.Core/Infrastructure/IniFile.cs
 
+; Deploying with custom script
+; https://github.com/projectkudu/kudu/wiki/Customizing-deployments#deploying-with-custom-script
+
 ; Configurable settings https://github.com/projectkudu/kudu/wiki/Configurable-settings
 ; Runtime settings cannot be overrided in .deployment e.g. WEBSITE_NODE_DEFAULT_VERSION
 ; More info https://github.com/projectkudu/kudu/wiki/Configurable-settings#runtime-settings

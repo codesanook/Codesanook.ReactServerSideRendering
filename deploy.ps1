@@ -1,94 +1,113 @@
 # https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/set-strictmode?view=powershell-7
 Set-StrictMode -Version Latest
 
-"CUSTOM_VARIABLE $env:CUSTOM_VARIABLE"
-"SCM_REPOSITORY_PATH $env:SCM_REPOSITORY_PATH"
+"CUSTOM_VARIABLE: $Env:CUSTOM_VARIABLE"
+"SCM_REPOSITORY_PATH: $Env:SCM_REPOSITORY_PATH"
 
-# https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_preference_variables?view=powershell-7erroractionpreference
-$ErrorActionPreference = "Stop"
+# https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_preference_variables?view=powershell-7#erroractionpreference
+"Current `$ErrorActionPreference value: $ErrorActionPreference"
 
-# https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_preference_variables?view=powershell-7#verbosepreference
-$VerbosePreference = "Stop"
+function Invoke-ExternalCommand {
+    param (
+        [scriptblock] $ScriptBlock
+    )
+    # Displays an error message and continue executing if there is standard error.
+    $ErrorActionPreference = "Continue"
+    & $ScriptBlock 2>&1 
+    if ($LastExitCode) {
+        "Failed exitCode=$LastExitCode, command=$($ScriptBlock.ToString())"
+    }
+}
 
-Get-Command node
+function Exit-ScriptIfError {
+    if ($LastExitCode) {
+        "Command failed with exitCode=$LastExitCode"
+        Exit 1 
+    }
+}
+
+# Verify node.js installed
+if (-not (Get-Command -Name node -ErrorAction Ignore)) {
+    throw "Missing node.js executable, please install node.js." +
+    "If already installed, make sure it can be reached from current environment."
+}
+
 $ARTIFACTS = "$PSScriptRoot\..\artifacts"
 
 # Set deployment source folder
-if (-not $env:DEPLOYMENT_SOURCE) {
+if (-not $Env:DEPLOYMENT_SOURCE) {
     'Set $DEPLOYMENT_SOURCE variable from current directory'
-	$env:DEPLOYMENT_SOURCE = $PSScriptRoot
+    $Env:DEPLOYMENT_SOURCE = $PSScriptRoot
 }
 
-if (-not $env:DEPLOYMENT_TARGET) {
+if (-not $Env:DEPLOYMENT_TARGET) {
     'Set $DEPLOYMENT_TARGET variable'
-	$env:DEPLOYMENT_TARGET = "$ARTIFACTS\wwwroot"
+    $Env:DEPLOYMENT_TARGET = "$ARTIFACTS\wwwroot"
 }
 
-if (-not $env:NEXT_MANIFEST_PATH) {
+if (-not $Env:NEXT_MANIFEST_PATH) {
     'Set $NEXT_MANIFEST_PATH variable'
-	$env:NEXT_MANIFEST_PATH = "$ARTIFACTS\manifest"
+    $Env:NEXT_MANIFEST_PATH = "$ARTIFACTS\manifest"
 }
 
-if (-not $env:PREVIOUS_MANIFEST_PATH) {
-	'Set $PREVIOUS_MANIFEST_PATH variable'
-	$env:PREVIOUS_MANIFEST_PATH = "$ARTIFACTS\manifest"
+if (-not $Env:PREVIOUS_MANIFEST_PATH) {
+    'Set $PREVIOUS_MANIFEST_PATH variable'
+    $Env:PREVIOUS_MANIFEST_PATH = "$ARTIFACTS\manifest"
 }
 
-if (-not $env:KUDU_SYNC_CMD) {
-	"Installing Kudu Sync"
-	npm install kudusync -g --silent
+if (-not $Env:KUDU_SYNC_CMD) {
+    "Installing Kudu Sync"
+    npm install kudusync -g --silent
 
-	# Locally just running "kuduSync" would also work
+    # Locally just running "kuduSync" would also work
     'Set $KUDU_SYNC_CMD varialble'
-	$env:KUDU_SYNC_CMD = "$env:APPDATA\npm\kuduSync.cmd"
+    $Env:KUDU_SYNC_CMD = "$Env:AppData\npm\kuduSync.cmd"
 }
 
-if (-not $env:DEPLOYMENT_TEMP) {
-	$random = Get-Random -InputObject $(0..$([int16]::MaxValue))
+if (-not $Env:DEPLOYMENT_TEMP) {
+    $random = Get-Random -InputObject $(0..$([int16]::MaxValue))
 
     'Set $DEPLOYMENT_TEMP and $CLEAN_LOCAL_DEPLOYMENT_TEMP variables'
-	$env:DEPLOYMENT_TEMP = "$env:TEMP\___deployTemp$random"
-	$CLEAN_LOCAL_DEPLOYMENT_TEMP = $true
-}else{
-	$CLEAN_LOCAL_DEPLOYMENT_TEMP = $false
+    $Env:DEPLOYMENT_TEMP = "$Env:TEMP\___deployTemp$random"
+    $CLEAN_LOCAL_DEPLOYMENT_TEMP = $true
+}
+else {
+    $CLEAN_LOCAL_DEPLOYMENT_TEMP = $false
 }
 
 if ($CLEAN_LOCAL_DEPLOYMENT_TEMP) {
-    'About to remove and create new $env:DEPLOYMENT_TEMP directory'
-    if (Test-Path -Path $env:DEPLOYMENT_TEMP) {
-        'Remove $env:DEPLOYMENT_TEMP directory'
-        Remove-Item -Path $env:DEPLOYMENT_TEMP -Force -Recurse
+    'About to remove and create new $Env:DEPLOYMENT_TEMP directory'
+    if (Test-Path -Path $Env:DEPLOYMENT_TEMP) {
+        'Remove $Env:DEPLOYMENT_TEMP directory'
+        Remove-Item -Path $Env:DEPLOYMENT_TEMP -Force -Recurse
     }
 
-    'New $env:DEPLOYMENT_TEMP directory'
-    New-Item -ItemType Directory -Path $env:DEPLOYMENT_TEMP
+    'New $Env:DEPLOYMENT_TEMP directory'
+    New-Item -ItemType Directory -Path $Env:DEPLOYMENT_TEMP
 }
 
 # Define default node version in WEBSITE_NODE_DEFAULT_VERSION App Setting
 # Find all Node.js versions from api/diagnostics/runtime
 # https://codesanook-reactjs-server-side-rendering.scm.azurewebsites.net/api/diagnostics/runtime
-"Default node version $env:WEBSITE_NODE_DEFAULT_VERSION"
+"Default node version $Env:WEBSITE_NODE_DEFAULT_VERSION"
 
-# Always set MSBUILD_PATH
+# Set MSBUILD_PATH
 'Set MSBUILD_PATH'
 $MSBUILD_PATH = "${env:ProgramFiles(x86)}\MSBuild-15.3.409.57025\MSBuild\15.0\Bin\MSBuild.exe"
-"MSBUILD_PATH: $MSBUILD_PATH"
-'Get MSBuild version'
-& "$MSBUILD_PATH" -version
 
-$SOLUTION_PATH = "$env:DEPLOYMENT_SOURCE\Codesanook.ReactJS.sln"
-$PROJECT_PATH = "$env:DEPLOYMENT_SOURCE\Codesanook.ReactJS.ServerSideRendering\Codesanook.ReactJS.ServerSideRendering.csproj"
-$PROJECT_DIR  = "$env:DEPLOYMENT_SOURCE\Codesanook.ReactJS.ServerSideRendering"
+$SOLUTION_PATH = "$Env:DEPLOYMENT_SOURCE\Codesanook.ReactJS.sln"
+$PROJECT_PATH = "$Env:DEPLOYMENT_SOURCE\Codesanook.ReactJS.ServerSideRendering\Codesanook.ReactJS.ServerSideRendering.csproj"
+$PROJECT_DIR = "$Env:DEPLOYMENT_SOURCE\Codesanook.ReactJS.ServerSideRendering"
 
 "-----------------Variables---------------------------------"
-"ARTIFACTS = $env:ARTIFACTS"
-"DEPLOYMENT_SOURCE = $env:DEPLOYMENT_SOURCE"
-"DEPLOYMENT_TARGET = $env:DEPLOYMENT_TARGET"
-"NEXT_MANIFEST_PATH = $env:NEXT_MANIFEST_PATH"
-"PREVIOUS_MANIFEST_PATH = $env:PREVIOUS_MANIFEST_PATH"
-"KUDU_SYNC_CMD = $env:KUDU_SYNC_CMD"
-"DEPLOYMENT_TEMP = $env:DEPLOYMENT_TEMP"
-"IN_PLACE_DEPLOYMENT = $env:IN_PLACE_DEPLOYMENT"
+"ARTIFACTS = $Env:ARTIFACTS"
+"DEPLOYMENT_SOURCE = $Env:DEPLOYMENT_SOURCE"
+"DEPLOYMENT_TARGET = $Env:DEPLOYMENT_TARGET"
+"NEXT_MANIFEST_PATH = $Env:NEXT_MANIFEST_PATH"
+"PREVIOUS_MANIFEST_PATH = $Env:PREVIOUS_MANIFEST_PATH"
+"KUDU_SYNC_CMD = $Env:KUDU_SYNC_CMD"
+"DEPLOYMENT_TEMP = $Env:DEPLOYMENT_TEMP"
+"IN_PLACE_DEPLOYMENT = $Env:IN_PLACE_DEPLOYMENT"
 
 "CLEAN_LOCAL_DEPLOYMENT_TEMP = $CLEAN_LOCAL_DEPLOYMENT_TEMP"
 "MSBUILD_PATH = $MSBUILD_PATH"
@@ -96,89 +115,79 @@ $PROJECT_DIR  = "$env:DEPLOYMENT_SOURCE\Codesanook.ReactJS.ServerSideRendering"
 "SOLUTION_PATH = $SOLUTION_PATH" 
 "PROJECT_PATH = $PROJECT_PATH" 
 "PROJECT_DIR = $PROJECT_DIR" 
-
- "-----------------Variables END ---------------------------------"
-
-"Handling .NET Web Application deployment."
+"-----------------Variables END ---------------------------------"
 
 "Current node and npm version"
-node --version
-npm --version
+"node version $(& node --version)"
+"npm version $(& npm --version)"
 
-# Verify yarn installed 
-"Remove yarn if exist"
-npm uninstall -g yarn
+"Verify yarn installed" 
+$Env:Path += ";$Env:AppData\npm"
+if (Get-Command -Name yarn -ErrorAction Ignore) {
+    "Update yarn as a global tool to the latest version"
+    Invoke-ExternalCommand -ScriptBlock { & npm update yarn -g --silent }
+    Exit-ScriptIfError
+}
+else {
+    "Install yarn as a global tool"
+    Invoke-ExternalCommand -ScriptBlock { & npm install yarn -g --silent }
+    Exit-ScriptIfError
+}
 
-"Add yarn as a global tool"
-npm install -g yarn
-
-# Install node packages
-if(Test-Path -Path "$PROJECT_DIR\package.json") {
-    "Current working directory '$PSScriptRoot'"
-    "Found $PROJECT_DIR\package.json"
-
-    Push-Location -Path  $PROJECT_DIR
-    "Installing node packages with yarn"
-    yarn install --silent
-    Pop-Location
-}else{
+if (-not (Test-Path -Path "$PROJECT_DIR\package.json")) {
     throw "There is no $PROJECT_DIR\package.json file"
 }
 
-# Build node packages
-if(Test-Path -Path "$PROJECT_DIR\package.json") {
-    Push-Location $PROJECT_DIR
-	"Building node with yarn" 
-    yarn run dev
-    Pop-Location
-}
+# Install node packages
+Push-Location -Path  $PROJECT_DIR
+"Installing node packages with yarn"
+Invoke-ExternalCommand -ScriptBlock { & yarn install --silent }
+Exit-ScriptIfError
 
+# Build node packages
+"Building node with yarn" 
+Invoke-ExternalCommand -ScriptBlock { & yarn run dev }
+Exit-ScriptIfError
+Pop-Location
+
+"Handling .NET Web Application deployment."
 "Restore NuGet packages"
-nuget restore "$SOLUTION_PATH"
+Invoke-ExternalCommand -ScriptBlock { & nuget restore "$SOLUTION_PATH" }
+Exit-ScriptIfError
 
 "Build .NET project to the temp directory"
-"$env:DEPLOYMENT_SOURCE\\"
-
-if(-not $env:IN_PLACE_DEPLOYMENT){
-	"Building with MSBUILD to '$env:DEPLOYMENT_TEMP'" 
-
-	& "$MSBUILD_PATH" `
-        "$PROJECT_PATH" `
-        /nologo `
-        /verbosity:minimal `
-        /t:Build `
-        /t:pipelinePreDeployCopyAllFilesToOneFolder `
-        /p:_PackageTempDir="$env:DEPLOYMENT_TEMP" `
-        /p:AutoParameterizationWebConfigConnectionStrings=false `
-        /p:Configuration=Release `
-        /p:UseSharedCompilation=false `
-        /p:SolutionDir="$env:DEPLOYMENT_SOURCE\\" `
-        $env:SCM_BUILD_ARGS
+if (-not $Env:IN_PLACE_DEPLOYMENT) {
+    "Building with MSBUILD to '$Env:DEPLOYMENT_TEMP'" 
+    Invoke-ExternalCommand -ScriptBlock { 
+        & "$MSBUILD_PATH" `
+            "$PROJECT_PATH" `
+            /nologo `
+            /verbosity:minimal `
+            /t:Build `
+            /t:pipelinePreDeployCopyAllFilesToOneFolder `
+            /p:_PackageTempDir="$Env:DEPLOYMENT_TEMP" `
+            /p:AutoParameterizationWebConfigConnectionStrings=false `
+            /p:Configuration=Release `
+            /p:UseSharedCompilation=false `
+            /p:SolutionDir="$Env:DEPLOYMENT_SOURCE" `
+            $Env:SCM_BUILD_ARGS
         # Set SCM_BUILD_ARGS apps settings to whatever string you want to append to the msbuild command line.
-
-    if (-not $?) {
-        throw "Error building .NET project"
     }
-} 
+    Exit-ScriptIfError
+}
 
-"Output structure of build result"
-tree "$env:DEPLOYMENT_TEMP" /f /a 
-# /f Displays the names of the files in each directory.
-# /a Specifies that tree is to use text characters instead of graphic characters to show the lines that link subdirectories.
-
-if(-not $env:IN_PLACE_DEPLOYMENT){
-	"Kudu syncing" 
-	& "$env:KUDU_SYNC_CMD" `
-        -v 50 `
-        -f "$env:DEPLOYMENT_TEMP" `
-        -t "$env:DEPLOYMENT_TARGET" `
-        -n "$env:NEXT_MANIFEST_PATH" `
-        -p "$env:PREVIOUS_MANIFEST_PATH" `
-        -i ".git;.hg;.deployment;deploy.cmd;deploy.ps1;node_modules;"
-
-    if (-not $?) {
-        throw "Error syncing Kudu"
+if (-not $Env:IN_PLACE_DEPLOYMENT) {
+    "Kudu syncing" 
+    Invoke-ExternalCommand -ScriptBlock {
+        & "$Env:KUDU_SYNC_CMD" `
+            -v 50 `
+            -f "$Env:DEPLOYMENT_TEMP" `
+            -t "$Env:DEPLOYMENT_TARGET" `
+            -n "$Env:NEXT_MANIFEST_PATH" `
+            -p "$Env:PREVIOUS_MANIFEST_PATH" `
+            -i ".git;.hg;.deployment;deploy.cmd;deploy.ps1;node_modules;"
     }
+    Exit-ScriptIfError
 }
 
 "Deployment successfully"
