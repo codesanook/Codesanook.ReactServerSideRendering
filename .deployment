@@ -1,4 +1,5 @@
-; .deployment is INI file parse with Kudu.Core/Infrastructure/IniFile.cs
+; .deployment is actually an INI file parse with 
+; https://raw.githubusercontent.com/projectkudu/kudu/master/Kudu.Core/Infrastructure/IniFile.cs
 
 ; Deploying with custom script
 ; https://github.com/projectkudu/kudu/wiki/Customizing-deployments#deploying-with-custom-script
@@ -9,9 +10,12 @@
 
 [config]
 COMMAND = PowerShell -NoProfile -NoLogo -ExecutionPolicy Unrestricted -Command "& "$(Join-Path -Path $(Get-Location) -ChildPath deploy.ps1)" 2>&1 | Write-Output"
-SCM_REPOSITORY_PATH = D:\local\repository
 CUSTOM_VARIABLE = my custom variable value
 
 ; https://github.com/projectkudu/kudu/wiki/Configurable-settings#changing-the-timeout-before-external-commands-are-killed
 ; Time in seconds
 SCM_COMMAND_IDLE_TIMEOUT = 300
+
+SOLUTION_PATH = Codesanook.ReactJS.sln
+PROJECT_DIR = Codesanook.ReactJS.ServerSideRendering
+PROJECT_PATH = Codesanook.ReactJS.ServerSideRendering/Codesanook.ReactJS.ServerSideRendering.csproj
