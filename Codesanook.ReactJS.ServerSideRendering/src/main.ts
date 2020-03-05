@@ -3,3 +3,4 @@
 // Read more here: https://webpack.js.org/configuration/node/.
 declare var global: any;
 global.Components = Components;
+// We can reference in cshtml as Components.xxx e.g. Component.Profile 

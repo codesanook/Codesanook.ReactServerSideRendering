@@ -11,20 +11,21 @@ namespace Codesanook.ReactJS.ServerSideRendering.App_Start
         public static void RegisterAutofac()
         {
             var builder = new ContainerBuilder();
-            // Register your MVC controllers. (MvcApplication is the name of
-            // the class in Global.asax.)
+            // Register your MVC controllers. (MvcApplication is the name of the class in Global.asax.)
             builder.RegisterControllers(typeof(MvcApplication).Assembly);
 
-            //Register React
+            // Register React
             builder.RegisterReact();
 
-            // Set the dependency resolver to be Autofac.
+            // Build the container
             var container = builder.Build();
-            DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
 
             ReactSiteConfiguration.Configuration
                 .SetLoadBabel(false)
-                .AddScriptWithoutTransform("~/scripts/server.bundle.js");
+                .AddScriptWithoutTransform("~/Scripts/main.bundle.js");
+
+            // Set the MVC dependency resolver to use Autofac.
+            DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
         }
     }
 }

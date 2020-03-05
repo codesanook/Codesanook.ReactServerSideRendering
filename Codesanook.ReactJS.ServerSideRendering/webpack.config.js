@@ -2,18 +2,21 @@ const path = require('path');
 
 module.exports = {
     entry: {
-        server: './src/server',
-        client: './src/client'
+        main: './src/main'
     },
     output: {
-        path: path.resolve(__dirname, 'scripts'),
+        path: path.resolve(__dirname, 'Scripts'),
         filename: '[name].bundle.js',
     },
     resolve: {
         extensions: ['.ts', '.tsx', '.js', 'jsx']
     },
     module: {
-        rules: [{ test: /\.(ts|js)x?$/, loader: 'babel-loader', exclude: /node_modules/ }],
+        rules: [{
+            test: /\.(ts|js)x?$/,
+            loader: 'babel-loader',
+            exclude: /node_modules/
+        }],
     },
     plugins: [
     ],

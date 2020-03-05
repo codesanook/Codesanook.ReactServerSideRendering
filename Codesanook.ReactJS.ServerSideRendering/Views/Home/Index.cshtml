@@ -1,15 +1,18 @@
-﻿<h3>Profile</h3>
-@Html.React(
-    "Components.Profile",
-    new
+﻿@using Codesanook.ReactJS.ServerSideRendering.Models
+@model  User
+@{ 
+    ViewBag.Title = "Real man";
+}
+
+<h3>Profile</h3>
+@{
+    var props = new
     {
-        user = new
-        {
-            firstName = "Phuong",
-            lastName = "XinChao"
-        }
-    }
-)
+        user = new { firstName = Model.FirstName, lastName = Model.LastName }
+    };
+}
+
+@Html.React("Components.Profile", props)
 
 <hr />
 <h3>Current counter value</h3>

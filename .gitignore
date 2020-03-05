@@ -293,6 +293,6 @@ dist
 # output of JScript.NET example
 program.exe
 
-# Ignore generated JavaScript files e.g. scripts/client.bundle.js, scripts/server.bundle.js
+# Ignore generated JavaScript files e.g. scripts/bundle.js
 **/src/**/*.js
 **/scripts/**/*.js

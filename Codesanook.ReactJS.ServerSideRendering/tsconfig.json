@@ -14,7 +14,7 @@
     "jsx": "react"
   },
   "include": [
-    "src/**/*", "../React.AutoFacIntegration/ReactConfig.cs", "../React.AutoFacIntegration/AutofaceConfig.cs", "Helpers/HtmlHelperExtensions2.cs"
+    "src/**/*", "../React.AutoFacIntegration/ReactConfig.cs", "../React.AutoFacIntegration/AutofaceConfig.cs", "Helpers/HtmlHelperExtensions2.cs", "src/main.ts"
   ],
   "exclude": [
     "node_modules",
