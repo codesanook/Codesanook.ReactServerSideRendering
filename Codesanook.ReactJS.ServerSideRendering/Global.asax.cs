@@ -11,7 +11,6 @@ namespace Codesanook.ReactJS.ServerSideRendering
         {
             AutofacConfig.RegisterAutofac();
             AreaRegistration.RegisterAllAreas();
-            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
         }
     }

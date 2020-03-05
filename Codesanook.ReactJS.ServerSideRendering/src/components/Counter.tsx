@@ -1,8 +1,13 @@
 ﻿import * as React from 'react';
+import { useState } from 'react';
 
-const Counter = (props: any) => {
+interface IProps {
+    defaultCounterValue: number;
+}
 
-    const [counter, setCounter] = React.useState(props.defaultCounterValue);
+const Counter = (props: IProps) => {
+
+    const [counter, setCounter] = useState(props.defaultCounterValue);
     const handleButtonClick = () => {
         setCounter(counter + 1);
     };
@@ -11,7 +16,7 @@ const Counter = (props: any) => {
         <div>
             <h1>{counter}</h1>
             <p>
-                Click button to increase counter
+                Click the button to increase a counter
             </p>
             <button onClick={handleButtonClick}>Increase counter</button>
         </div>

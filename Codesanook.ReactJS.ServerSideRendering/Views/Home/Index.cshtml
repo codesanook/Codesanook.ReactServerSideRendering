@@ -1,8 +1,31 @@
-﻿<h3>Current counter value</h3>
-@Html.React("Components.Counter",
-new { defaultCounterValue = 99 }
+﻿<h3>Profile</h3>
+@Html.React(
+    "Components.Profile",
+    new
+    {
+        user = new
+        {
+            firstName = "Phuong",
+            lastName = "XinChao"
+        }
+    }
+)
+
+<hr />
+<h3>Current counter value</h3>
+@Html.React(
+    "Components.Counter",
+    new { defaultCounterValue = 99 }
 )
 <hr />
+
+<h3>Another counter value</h3>
+@Html.React(
+    "Components.Counter",
+    new { defaultCounterValue = 9999 }
+)
+<hr />
+
 <h4>
     Credit admin Thep Pong <a href="https://www.codesanook.com">codesanook.com</a>
 </h4>

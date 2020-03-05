@@ -6,7 +6,7 @@ using System.Web.Mvc;
 
 namespace Codesanook.ReactJS.ServerSideRendering.App_Start
 {
-    public class AutofacConfig
+    public static class AutofacConfig
     {
         public static void RegisterAutofac()
         {
