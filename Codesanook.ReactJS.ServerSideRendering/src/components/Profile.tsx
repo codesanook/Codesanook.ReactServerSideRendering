@@ -9,9 +9,9 @@ interface IProps {
 }
 
 const Profile = (props: IProps) => {
-
     return (
         <div>
+            <h2></h2>
             <ul>
                 <li>First name: {props.user.firstName}</li>
                 <li>Last name: {props.user.lastName}</li>
@@ -21,3 +21,4 @@ const Profile = (props: IProps) => {
 };
 
 export default Profile;
+

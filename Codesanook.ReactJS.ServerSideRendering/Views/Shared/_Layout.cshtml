@@ -10,8 +10,22 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/16.8.6/umd/react.development.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.8.6/umd/react-dom.development.js"></script>
+    @{
 
-    <script src="~/Scripts/main.bundle.js"></script>
+        // Unix time, the number of seconds since 00:00:00 UTC on January 1, 1970
+        var unixTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+        var scriptUrl = "/Scripts/main.bundle.js?timestamp=" + unixTimestamp;
+    }
+
+    <script src="@scriptUrl"></script>
     @Html.ReactInitJavaScript()
+    <script>
+        document.write(
+            '<script src="http://' +
+            (location.host || 'localhost').split(':')[0] +
+            ':35729/livereload.js?snipver=2"></' +
+            'script>'
+        )
+    </script>
 </body>
 </html>
