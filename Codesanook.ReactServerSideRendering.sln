@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "React.AutofacIntegration", "React.AutofacIntegration\React.AutofacIntegration.csproj", "{E5DDBFA6-1C41-4131-AF82-912C41D5E019}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codesanook.ReactJS.ServerSideRendering", "Codesanook.ReactJS.ServerSideRendering\Codesanook.ReactJS.ServerSideRendering.csproj", "{FA05C094-627A-4057-AA2E-5A72743B0CC7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codesanook.ReactServerSideRendering", "Codesanook.ReactServerSideRendering\Codesanook.ReactServerSideRendering.csproj", "{FA05C094-627A-4057-AA2E-5A72743B0CC7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
