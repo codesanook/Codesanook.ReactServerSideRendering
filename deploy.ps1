@@ -2,14 +2,16 @@
 Set-StrictMode -Version Latest
 
 # https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_preference_variables?view=powershell-7#erroractionpreference
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue" # Just explicit set it
 
 Import-Module -Name .\DeploymentUtility -Force
 
 "Verify if Node.js installed"
 if (-not (Get-Command -Name node -ErrorAction Ignore)) {
-    throw "Missing node.js executable, please install node.js." +
-    "If already installed, make sure it can be reached from current environment."
+    throw  (
+		"Missing node.js executable, please install node.js." +
+		"If already installed, make sure it can be reached from current environment."
+	)
 }
 
 $ARTIFACTS = "$PSScriptRoot\..\artifacts"
@@ -32,15 +34,6 @@ if (-not $Env:NEXT_MANIFEST_PATH) {
 if (-not $Env:PREVIOUS_MANIFEST_PATH) {
     'Set $PREVIOUS_MANIFEST_PATH variable'
     $Env:PREVIOUS_MANIFEST_PATH = "$ARTIFACTS\manifest"
-}
-
-if (-not $Env:KUDU_SYNC_CMD) {
-    "Installing Kudu Sync"
-    npm install kudusync -g --silent
-
-    # Locally just running "kuduSync" would also work
-    'Set $KUDU_SYNC_CMD varialble'
-    $Env:KUDU_SYNC_CMD = "$Env:AppData\npm\kuduSync.cmd"
 }
 
 if (-not $Env:DEPLOYMENT_TEMP) {
@@ -74,65 +67,40 @@ $environmentNameToWriteValue = @(
     "DEPLOYMENT_TARGET"
     "NEXT_MANIFEST_PATH"
     "PREVIOUS_MANIFEST_PATH"
-    "KUDU_SYNC_CMD"
     "DEPLOYMENT_TEMP"
     "IN_PLACE_DEPLOYMENT"
     "WEBSITE_NODE_DEFAULT_VERSION"
+    "WEBSITE_NPM_DEFAULT_VERSION"
     "SCM_REPOSITORY_PATH"
     "Path" 
     "SOLUTION_PATH"
     "PROJECT_DIR"
     "PROJECT_PATH"
-    "CUSTOM_VARIABLE" # Defined in .dployment
 )
 Write-EnviromentValue -EnvironmentName $environmentNameToWriteValue
 
-# Define default node version in WEBSITE_NODE_DEFAULT_VERSION App Setting
-# Find all Node.js versions from api/diagnostics/runtime
-# https://codesanook-reactjs-server-side-rendering.scm.azurewebsites.net/api/diagnostics/runtime
-"node version $(& node --version)"
-"npm version $(& npm --version)"
+Install-KuduSync
+Install-Yarn
 
-"Verify if yarn installed" 
-$Env:Path += ";$Env:AppData\npm"
-if (Get-Command -Name yarn -ErrorAction Ignore) {
-    "Update yarn as a global tool to the latest version"
-    Invoke-ExternalCommand -ScriptBlock { & npm update yarn -g --silent }
-    Exit-ScriptIfError
-}
-else {
-    "Install yarn as a global tool"
-    Invoke-ExternalCommand -ScriptBlock { & npm install yarn -g --silent }
-    Exit-ScriptIfError
-}
-
-"Bulding Node project"
-if (-not (Test-Path -Path "$Env:PROJECT_DIR\package.json")) {
-    throw "There is no $Env:PROJECT_DIR\package.json file"
-}
-
-# Install node packages
+# Install npm packages
 Push-Location -Path  $Env:PROJECT_DIR
-"Installing node packages with yarn"
-Invoke-ExternalCommand -ScriptBlock { & yarn install --silent }
-Exit-ScriptIfError
+"Installing npm packages with yarn"
+Invoke-ExternalCommand -ScriptBlock { yarn install }
 
-# Build node packages
-"Building node with yarn" 
-Invoke-ExternalCommand -ScriptBlock { & yarn run dev }
-Exit-ScriptIfError
+# Build Node.js project
+"Building Nodel.js project with yarn" 
+Invoke-ExternalCommand -ScriptBlock { yarn run dev }
 Pop-Location
 
 "Handling .NET Web Application deployment."
 "Restore NuGet packages"
-Invoke-ExternalCommand -ScriptBlock { & nuget restore "$Env:SOLUTION_PATH" }
-Exit-ScriptIfError
+Invoke-ExternalCommand -ScriptBlock { nuget restore "$Env:SOLUTION_PATH" }
 
 "Build .NET project to the temp directory"
 if (-not $Env:IN_PLACE_DEPLOYMENT) {
     "Building with MSBUILD to '$Env:DEPLOYMENT_TEMP'" 
     Invoke-ExternalCommand -ScriptBlock { 
-        & "$Env:MSBUILD_PATH" `
+        cmd /c "$Env:MSBUILD_PATH" `
             "$Env:PROJECT_PATH" `
             /nologo `
             /verbosity:minimal `
@@ -144,23 +112,26 @@ if (-not $Env:IN_PLACE_DEPLOYMENT) {
             /p:UseSharedCompilation=false `
             /p:SolutionDir="$Env:DEPLOYMENT_SOURCE" `
             $Env:SCM_BUILD_ARGS
-        # Set SCM_BUILD_ARGS App Services Apps Settings to string you want to append to the msbuild command line.
+			# Set SCM_BUILD_ARGS as App Settings to any string you want to append to the msbuild command line.
     }
-    Exit-ScriptIfError
 }
 
 if (-not $Env:IN_PLACE_DEPLOYMENT) {
-    "Kudu syncing" 
+    "Syncing a build output to a deployment folder" 
     Invoke-ExternalCommand -ScriptBlock {
-        & "$Env:KUDU_SYNC_CMD" `
-            -v 50 `
+        cmd /c kudusync `
             -f "$Env:DEPLOYMENT_TEMP" `
             -t "$Env:DEPLOYMENT_TARGET" `
             -n "$Env:NEXT_MANIFEST_PATH" `
             -p "$Env:PREVIOUS_MANIFEST_PATH" `
             -i ".git;.hg;.deployment;deploy.cmd;deploy.ps1;node_modules;"
     }
-    Exit-ScriptIfError
+}
+
+if ($Env:POST_DEPLOYMENT_ACTION) {
+    "Post deployment stub"
+    Invoke-ExternalCommand -ScriptBlock { $Env:POST_DEPLOYMENT_ACTION }
 }
 
 "Deployment successfully"
+
