@@ -1,9 +1,7 @@
 # https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/set-strictmode?view=powershell-7
 Set-StrictMode -Version Latest
-
 # https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_preference_variables?view=powershell-7#erroractionpreference
 $ErrorActionPreference = "Continue" # Just explicit set it
-
 Import-Module -Name .\DeploymentUtility -Force
 
 "Verify if Node.js installed"
@@ -58,9 +56,6 @@ if ($CLEAN_LOCAL_DEPLOYMENT_TEMP) {
     New-Item -ItemType Directory -Path $Env:DEPLOYMENT_TEMP
 }
 
-$MSBUILD_PATH = "${env:ProgramFiles(x86)}\MSBuild-15.3.409.57025\MSBuild\15.0\Bin\MSBuild.exe"
-"`$MSBUILD_PATH is set to $MSBUILD_PATH"
-
 # Log environment variables
 $environmentNameToWriteValue = @(
     "DEPLOYMENT_SOURCE"
@@ -74,8 +69,8 @@ $environmentNameToWriteValue = @(
     "SCM_REPOSITORY_PATH"
     "Path" 
     "SOLUTION_PATH"
-    "PROJECT_DIR"
     "PROJECT_PATH"
+    "MSBUILD_PATH"
 )
 Write-EnviromentValue -EnvironmentName $environmentNameToWriteValue
 
@@ -83,7 +78,8 @@ Install-KuduSync
 Install-Yarn
 
 # Install npm packages
-Push-Location -Path  $Env:PROJECT_DIR
+$projectDir = (Get-Item (Join-Path $PSScriptRoot "Codesanook.ReactServerSideRendering/Codesanook.ReactServerSideRendering.csproj")).Directory.FullName
+Push-Location -Path $projectDir
 "Installing npm packages with yarn"
 Invoke-ExternalCommand -ScriptBlock { yarn install }
 

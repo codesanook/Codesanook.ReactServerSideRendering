@@ -27,7 +27,8 @@ COMMAND = PowerShell -NoProfile -NoLogo -ExecutionPolicy Unrestricted -Command "
 SCM_COMMAND_IDLE_TIMEOUT = 600
 
 ; Variables for msbuild 
+
+MSBUILD_PATH = D:\Program Files (x86)\MSBuild-15.9.21.664\MSBuild\MSBuild\15.0\Bin\MSBuild.exe
 SOLUTION_PATH = Codesanook.ReactServerSideRendering.sln
-PROJECT_DIR = Codesanook.ReactServerSideRendering
 PROJECT_PATH = Codesanook.ReactServerSideRendering/Codesanook.ReactServerSideRendering.csproj
 
