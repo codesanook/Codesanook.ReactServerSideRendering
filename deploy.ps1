@@ -78,7 +78,7 @@ Install-KuduSync
 Install-Yarn
 
 # Install npm packages
-$projectDir = (Get-Item (Join-Path $PSScriptRoot "Codesanook.ReactServerSideRendering/Codesanook.ReactServerSideRendering.csproj")).Directory.FullName
+$projectDir = (Get-Item (Join-Path $PSScriptRoot $Env:PROJECT_PATH)).Directory.FullName
 Push-Location -Path $projectDir
 "Installing npm packages with yarn"
 Invoke-ExternalCommand -ScriptBlock { yarn install }
@@ -92,23 +92,27 @@ Pop-Location
 "Restore NuGet packages"
 Invoke-ExternalCommand -ScriptBlock { nuget restore "$Env:SOLUTION_PATH" }
 
+
+$preCompiledDir = "$Env:DEPLOYMENT_SOURCE\build\Precompiled"
+
 "Build .NET project to the temp directory"
 if (-not $Env:IN_PLACE_DEPLOYMENT) {
     "Building with MSBUILD to '$Env:DEPLOYMENT_TEMP'" 
-    Invoke-ExternalCommand -ScriptBlock { 
+    Invoke-ExternalCommand -ScriptBlock {
         cmd /c "$Env:MSBUILD_PATH" `
             "$Env:PROJECT_PATH" `
-            /nologo `
-            /verbosity:minimal `
             /t:Build `
             /t:pipelinePreDeployCopyAllFilesToOneFolder `
-            /p:_PackageTempDir="$Env:DEPLOYMENT_TEMP" `
+            /p:_PackageTempDir=$preCompiledDir `
             /p:AutoParameterizationWebConfigConnectionStrings=false `
             /p:Configuration=Release `
             /p:UseSharedCompilation=false `
             /p:SolutionDir="$Env:DEPLOYMENT_SOURCE" `
+            /verbosity:minimal `
+            /maxcpucount `
+            /nologo `
             $Env:SCM_BUILD_ARGS
-			# Set SCM_BUILD_ARGS as App Settings to any string you want to append to the msbuild command line.
+			# Set SCM_BUILD_ARGS as App Service Configuration to any string you want to append to the MSBuild command line.
     }
 }
 
@@ -116,7 +120,7 @@ if (-not $Env:IN_PLACE_DEPLOYMENT) {
     "Syncing a build output to a deployment folder" 
     Invoke-ExternalCommand -ScriptBlock {
         cmd /c kudusync `
-            -f "$Env:DEPLOYMENT_TEMP" `
+            -f "$preCompiledDir" `
             -t "$Env:DEPLOYMENT_TARGET" `
             -n "$Env:NEXT_MANIFEST_PATH" `
             -p "$Env:PREVIOUS_MANIFEST_PATH" `
